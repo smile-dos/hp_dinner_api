@@ -1,0 +1,4 @@
+
+urlpatterns = [
+    # eg: (resource, url)
+]
