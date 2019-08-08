@@ -1,7 +1,6 @@
 from kombu import Connection, Producer, Consumer, Queue, uuid
 from core import settings
 import pickle
-import json
 
 
 class RpcProxy(object):
@@ -12,8 +11,12 @@ class RpcProxy(object):
 
     def on_response(self, message):
         if message.properties['correlation_id'] == self.correlation_id:
-            print(message.payload['result'])
-            self.response = message.payload['result']
+            result = message.payload
+            ret = pickle.loads(result)
+            if isinstance(ret, Exception):
+                raise ret
+            else:
+                self.response = ret
 
     def __getattr__(self, name):
         def do_rpc(*args, **kwargs):
@@ -29,9 +32,12 @@ class RpcProxy(object):
                     correlation_id=self.correlation_id,
                 )
 
-            with Consumer(self.connection,
-                          on_message=self.on_response,
-                          queues=[self.callback_queue], no_ack=True):
+            with Consumer(
+                    self.connection,
+                    on_message=self.on_response,
+                    queues=[self.callback_queue],
+                    no_ack=True,
+                    accept=['json', 'pickle', 'msgpack']):
                 while self.response is None:
                     self.connection.drain_events()
             return self.response
