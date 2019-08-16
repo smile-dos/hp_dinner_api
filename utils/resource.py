@@ -8,4 +8,4 @@ class Resource(flask_restful.Resource):
 
 class JWTResource(flask_restful.Resource):
 
-    method_decorators = [auth_jwt]
+    method_decorators = [auth_jwt.jwt_required]
