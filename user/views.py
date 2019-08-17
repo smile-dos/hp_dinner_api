@@ -101,13 +101,18 @@ class GetUserList(resource.JWTResource):
         except (IndexError, ValueError):
             page = 1
             page_size = 20
+        sort_name = request.args.get("sort_name", None)
+        sort_order = request.args.get("sort_order")
         keyword = request.args.get("keyword", None)
         try:
-            rpc_ret = rpc_client.select_user_list_by_page(page=page, page_size=page_size, keyword=keyword)
+            rpc_ret = rpc_client.select_user_list_by_page(page=page, page_size=page_size, keyword=keyword,
+                                                          sort_name=sort_name, sort_order=sort_order)
             msg = {
                 "code": constant.RestErrCode.ERR_OK,
-                "message": "Get "
+                "message": "Get user list success.",
+                "users": rpc_ret
             }
+            return msg
         except Exception as e:
             msg = {
                 "code": constant.RestErrCode.ERR_UNKNOWN,
